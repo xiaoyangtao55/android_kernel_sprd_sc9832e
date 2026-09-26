@@ -93,9 +93,12 @@ jobs:
 
           echo "=== Output ==="
           ls -lh out/
-
+      
+      - name: Set timestamp
+        run: echo "STAMP=$(TZ='Asia/Shanghai' date +'%y%m%d%H%M')" >> $GITHUB_ENV
+      
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: vp09-kernel-${{ github.run_number }}
+          name: vp09-kernel-${{ github.run_number }}-${{ env.STAMP }}
           path: out/*

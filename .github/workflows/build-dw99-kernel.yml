@@ -18,6 +18,7 @@ jobs:
       CROSS_COMPILE: aarch64-linux-gnu-
       CC: ccache aarch64-linux-gnu-gcc
       DEFCONFIG: lineageos_dw99_defconfig
+      DTB_PATTERN: "*dw99*.dtb"
 
     steps:
       - name: Checkout kernel source
@@ -34,6 +35,7 @@ jobs:
             libssl-dev libncurses5-dev \
             gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
             u-boot-tools xz-utils ccache \
+            device-tree-compiler \
             libstdc++6:i386 zlib1g:i386
 
       - name: Setup ccache
@@ -45,11 +47,11 @@ jobs:
       - name: Generate .config
         run: |
           make $DEFCONFIG
-          
+
           if [ -n "${{ inputs.localversion }}" ]; then
             echo "CONFIG_LOCALVERSION=\"${{ inputs.localversion }}\"" >> .config
           fi
-          
+
           make olddefconfig
 
       - name: Build kernel + DTB
@@ -61,27 +63,72 @@ jobs:
         run: |
           make -j$(nproc) modules
 
+      # ============ 新增：编译 dtbtool ============
+      - name: Build dtbtool
+        run: |
+          if [ ! -f tools/dtbtool/dtbtool.c ]; then
+            echo "ERROR: tools/dtbtool/dtbtool.c not found!"
+            exit 1
+          fi
+          make -C tools/dtbtool
+          ./tools/dtbtool/dtbtool --help || true
+
+      # ============ 新增：生成合并 DTB ============
+      - name: Generate merged DTB image
+        run: |
+          set -e
+
+          # 收集本机型 DTB 到临时目录
+          mkdir -p /tmp/dtb_input
+          find arch/arm64/boot/dts -name "$DTB_PATTERN" \
+               -exec cp {} /tmp/dtb_input/ \;
+
+          echo "=== DTB files collected ==="
+          ls -l /tmp/dtb_input/
+
+          if [ -z "$(ls -A /tmp/dtb_input/)" ]; then
+            echo "ERROR: no DTB files matched '$DTB_PATTERN'"
+            exit 1
+          fi
+
+          # 生成合并镜像（注意：输出路径不能和输入目录同名）
+          ./tools/dtbtool/dtbtool \
+              -o /tmp/dtb.img \
+              -p /usr/bin/ \
+              -s 2048 \
+              /tmp/dtb_input/
+
+          echo "=== dtb.img ==="
+          ls -lh /tmp/dtb.img
+          hexdump -C /tmp/dtb.img | head -n 3
+
       - name: Prepare output
         run: |
           mkdir -p out
-          
+
           # 内核镜像
           cp -f arch/arm64/boot/Image out/
           cp -f arch/arm64/boot/Image.gz out/
-          
+
           # 设备树 (DW99)
-          find arch/arm64/boot/dts -name "*dw99*.dtb" -exec cp {} out/ \;
-          
+          find arch/arm64/boot/dts -name "$DTB_PATTERN" -exec cp {} out/ \;
+
+          # 合并后的 DTB 镜像
+          cp -f /tmp/dtb.img out/dtb.img
+
           # 调试文件
           cp -f vmlinux out/
           cp -f System.map out/
           cp -f .config out/config
-          
+
           echo "=== Output ==="
           ls -lh out/
 
+      - name: Set timestamp
+        run: echo "STAMP=$(TZ='Asia/Shanghai' date +'%y%m%d%H%M')" >> $GITHUB_ENV
+      
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dw99-kernel-${{ github.run_number }}
+          name: dw99-kernel-${{ github.run_number }}-${{ env.STAMP }}
           path: out/*
