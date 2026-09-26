@@ -57,7 +57,6 @@ android_kernel_sprd_sc9832e/
 ├── sprd-board-config/          # 展锐板级配置（sharkle、sharkl3、pike2 等）
 ├── sprd-diffconfig/            # 展锐差异配置（用户版 / go 版 / trusty 等）
 ├── tools/dtbtool/              # 独立编译的 DTB 合并工具
-├── compile_environment.py      # 展锐传统编译入口（选择项目 -> 生成 .config）
 ├── README                      # 上游 Linux 内核官方文档
 └── README.md                   # 本文件
 ```
@@ -182,7 +181,7 @@ find arch/arm64/boot/dts -name "*dw99*.dtb" -exec cp {} /tmp/dtb_input/ \;
 
 ## 8. 致谢与许可
 
-- 上游内核：[ Linux Kernel 4.4.147(GPL-2.0) ](https://github.com/kanadenadi/android_kernel_sprd_sc9832e)
+- 上游内核：[Linux Kernel 4.4.147 (GPL-2.0)](https://github.com/kanadenadi/android_kernel_sprd_sc9832e)
 - 平台 BSP：Unisoc / Spreadtrum sharkle 平台内核
 - Root 方案：[KernelSU](https://github.com/tiann/KernelSU) / [ReSukiSU](https://github.com/ReSukiSU/ReSukiSU)
 - 以及所有为本仓库提交修复与适配的贡献者
