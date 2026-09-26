@@ -23,8 +23,6 @@ jobs:
     steps:
       - name: Checkout kernel source
         uses: actions/checkout@v4
-        with:
-          ref: lineage-17.1
 
       - name: Install dependencies
         run: |
