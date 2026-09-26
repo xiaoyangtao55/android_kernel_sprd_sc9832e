@@ -18,6 +18,7 @@ jobs:
       CROSS_COMPILE: aarch64-linux-gnu-
       CC: ccache aarch64-linux-gnu-gcc
       DEFCONFIG: lineageos_vp09_defconfig
+      DTB_PATTERN: "*vp09*.dtb"
 
     steps:
       - name: Checkout kernel source
