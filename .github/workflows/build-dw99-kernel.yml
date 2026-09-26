@@ -66,12 +66,14 @@ jobs:
       # ============ 新增：编译 dtbtool ============
       - name: Build dtbtool
         run: |
-          if [ ! -f tools/dtbtool/dtbtool.c ]; then
-            echo "ERROR: tools/dtbtool/dtbtool.c not found!"
+          make -C tools/dtbtool clean || true
+          make -C tools/dtbtool CC=gcc CFLAGS="-O2 -Wall -D_GNU_SOURCE"
+
+          file tools/dtbtool/dtbtool
+          file tools/dtbtool/dtbtool | grep -q "ELF.*x86-64" || {
+            echo "ERROR: dtbtool is not x86-64 ELF!"
             exit 1
-          fi
-          make -C tools/dtbtool
-          ./tools/dtbtool/dtbtool --help || true
+          }
 
       # ============ 新增：生成合并 DTB ============
       - name: Generate merged DTB image

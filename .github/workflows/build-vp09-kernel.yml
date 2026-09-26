@@ -72,6 +72,47 @@ jobs:
             BSP_MODULES_OUT=$PWD/out \
             modules
 
+      # ============ 新增：编译 dtbtool ============
+      - name: Build dtbtool
+        run: |
+          make -C tools/dtbtool clean || true
+          make -C tools/dtbtool CC=gcc CFLAGS="-O2 -Wall -D_GNU_SOURCE"
+
+          file tools/dtbtool/dtbtool
+          file tools/dtbtool/dtbtool | grep -q "ELF.*x86-64" || {
+            echo "ERROR: dtbtool is not x86-64 ELF!"
+            exit 1
+          }
+
+      # ============ 新增：生成合并 DTB ============
+      - name: Generate merged DTB image
+        run: |
+          set -e
+
+          # 收集本机型 DTB 到临时目录
+          mkdir -p /tmp/dtb_input
+          find arch/arm64/boot/dts -name "$DTB_PATTERN" \
+               -exec cp {} /tmp/dtb_input/ \;
+
+          echo "=== DTB files collected ==="
+          ls -l /tmp/dtb_input/
+
+          if [ -z "$(ls -A /tmp/dtb_input/)" ]; then
+            echo "ERROR: no DTB files matched '$DTB_PATTERN'"
+            exit 1
+          fi
+
+          # 生成合并镜像（注意：输出路径不能和输入目录同名）
+          ./tools/dtbtool/dtbtool \
+              -o /tmp/dtb.img \
+              -p /usr/bin/ \
+              -s 2048 \
+              /tmp/dtb_input/
+
+          echo "=== dtb.img ==="
+          ls -lh /tmp/dtb.img
+          hexdump -C /tmp/dtb.img | head -n 3
+
       - name: Prepare output
         run: |
           mkdir -p out
@@ -81,10 +122,10 @@ jobs:
           cp -f arch/arm64/boot/Image.gz out/
 
           # 设备树 (VP09)
-          find arch/arm64/boot/dts -name "*vp09*.dtb" -exec cp {} out/ \;
+          find arch/arm64/boot/dts -name "$DTB_PATTERN" -exec cp {} out/ \;
 
-          # Mali GPU 模块
-          cp -f out/mali/mali.ko out/
+          # 合并后的 DTB 镜像
+          cp -f /tmp/dtb.img out/dtb.img
 
           # 调试文件
           cp -f vmlinux out/
@@ -93,7 +134,7 @@ jobs:
 
           echo "=== Output ==="
           ls -lh out/
-      
+
       - name: Set timestamp
         run: echo "STAMP=$(TZ='Asia/Shanghai' date +'%y%m%d%H%M')" >> $GITHUB_ENV
       
