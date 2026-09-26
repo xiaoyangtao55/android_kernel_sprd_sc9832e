@@ -12,18 +12,15 @@
 | --- | --- |
 | 内核版本 | Linux 4.4.147（`NAME = Blurry Fish Butt`） |
 | 目标平台 | Unisoc / Spreadtrum SC9832E、SL8541E（sharkle 平台，ARM64） |
-| 目标系统 | LineageOS 17.1（Android 10） |
 | 默认架构 | `arm64` |
-| 交叉编译器 | `aarch64-linux-gnu-`（CI 使用 Ubuntu 22.04 官方工具链） |
-| 远程仓库 | `git@github.com:xiaoyangtao55/android_kernel_sprd_sc9832e.git` |
 | 许可证 | GPL-2.0（见 `COPYING`） |
 
 ### 分支说明
 
 | 分支 | 说明 |
 | --- | --- |
-| `lineage-17.1` | 主线分支，集成 **KernelSU v3.3.0**，含 vp09 DTS 修复等 |
-| `lineage-17.1-resukisu` | 当前开发分支，在 `lineage-17.1` 基础上改用 **ReSukiSU v4.2.0-rc1**，并加入 `tools/dtbtool` 与合并 DTB 的 CI 流程 |
+| `lineage-17.1` | 主线分支，集成 **KernelSU v3.3.0** |
+| `lineage-17.1-resukisu` | 当前开发分支，在 `lineage-17.1` 基础上改用 **ReSukiSU v4.2.0-rc1** |
 
 ---
 
@@ -75,7 +72,7 @@ android_kernel_sprd_sc9832e/
 | `lineageos_vp09_defconfig` | `arch/arm64/boot/dts/sprd/vp09.dts` | **VP09**，启用 `CONFIG_KSU` + manual hook、EROFS |
 | `lineageos_gm01_defconfig` | `arch/arm64/boot/dts/sprd/gm01.dts` | **GM01**，未启用 KernelSU |
 | `sprd_sharkle_defconfig` | `sp9832e-1h10-native.dts` 等 | 展锐 sharkle 平台原生参考配置 |
-| `sprd_sharkl3_defconfig`、`sprd_sharkl5_defconfig`、`sprd_roc1_defconfig`、`ranchu64_defconfig`、`EOL-*` | — | 同源码树内其他平台/历史配置，一般无需关心 |
+| `sprd_sharkl3_defconfig`、`sprd_sharkl5_defconfig`、`sprd_roc1_defconfig`、`ranchu64_defconfig`、`EOL-*` | — | 同源码树内其他平台/历史配置 |
 
 已注册的 DTB 目标见 `arch/arm64/boot/dts/sprd/Makefile`（`gm01.dtb`、`dw99.dtb`、`vp09.dtb`、`sp9832e-*` 等）。
 
@@ -164,12 +161,6 @@ find arch/arm64/boot/dts -name "*dw99*.dtb" -exec cp {} /tmp/dtb_input/ \;
 >
 > 另外，VP09 工作流还会额外通过 `drivers/gpu/arm/midgard` 构建 `mali.ko`。
 
-### 5.6 展锐传统编译流程（仅作参考）
-
-`compile_environment.py` + `sprd-board-config/` + `sprd-diffconfig/` 是展锐原厂的板级配置流程，最终调用 `make -f AndroidKernel.mk config`。
-
-该流程依赖完整展锐 Android 源码树中才存在的 `AndroidKernel.mk`（本仓库不包含），因此只建议在展锐原始环境下使用；日常开发请采用 5.2 节的方式。
-
 ---
 
 ## 6. Root 管理
@@ -182,7 +173,7 @@ find arch/arm64/boot/dts -name "*dw99*.dtb" -exec cp {} /tmp/dtb_input/ \;
 
 ## 7. 已知注意事项
 
-- 本树长期以 `lineage-17.1-resukisu` 为开发分支，主线 `lineage-17.1` 与它在 KernelSU 方案和 DTB 工具链上有差异，提交补丁时请确认目标分支。
+- 本树与主线 `lineage-17.1` 在 KernelSU 方案有差异，提交补丁时请确认目标分支。
 - 内核版本为 4.4，新增特性（如 EROFS）均以 backport 形式引入，升级上游组件时需注意 4.4 的 API 限制。
 - `make dtbs` 前请确保 `device-tree-compiler` 已安装，否则设备树无法编译。
 - 使用 `dtbtool` 时，输出文件不要放在输入 DTB 目录内，否则会读到自身输出。
@@ -191,10 +182,9 @@ find arch/arm64/boot/dts -name "*dw99*.dtb" -exec cp {} /tmp/dtb_input/ \;
 
 ## 8. 致谢与许可
 
-- 上游内核：Linux Kernel 4.4.147（GPL-2.0）
+- 上游内核：[ Linux Kernel 4.4.147(GPL-2.0) ](https://github.com/kanadenadi/android_kernel_sprd_sc9832e)
 - 平台 BSP：Unisoc / Spreadtrum sharkle 平台内核
 - Root 方案：[KernelSU](https://github.com/tiann/KernelSU) / [ReSukiSU](https://github.com/ReSukiSU/ReSukiSU)
-- 系统适配：LineageOS 17.1
 - 以及所有为本仓库提交修复与适配的贡献者
 
 本仓库遵循 **GNU General Public License v2.0** 发布，详见 `COPYING`。
