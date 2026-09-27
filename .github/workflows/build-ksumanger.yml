@@ -31,23 +31,20 @@ jobs:
       - name: Write key
         if: ${{ ( github.event_name != 'pull_request' && (github.ref == 'refs/heads/lineage-17.1' )) }}
         run: |
-            cp gradle.properties gradle.properties.bak
-            cat > gradle.properties << 'EOF'
-android.experimental.enableNewResourceShrinker.preciseShrinking=true
-android.enableAppCompileTimeRClass=true
-android.useAndroidX=true
-android.suppressUnsupportedCompileSdk=37.0
-org.gradle.jvmargs=-Xmx2048m
-org.gradle.parallel=true
-org.gradle.tooling.parallel=true
-org.gradle.vfs.watch=true
-android.r8.maxWorkers=4
-android.native.buildOutput=verbose
-KEYSTORE_PASSWORD=password
-KEY_ALIAS=alias
-KEY_PASSWORD=password
-KEYSTORE_FILE=dummy.keystore
-EOF
+            echo "android.experimental.enableNewResourceShrinker.preciseShrinking=true" > gradle.properties
+            echo "android.enableAppCompileTimeRClass=true" >> gradle.properties
+            echo "android.useAndroidX=true" >> gradle.properties
+            echo "android.suppressUnsupportedCompileSdk=37.0" >> gradle.properties
+            echo "org.gradle.jvmargs=-Xmx2048m" >> gradle.properties
+            echo "org.gradle.parallel=true" >> gradle.properties
+            echo "org.gradle.tooling.parallel=true" >> gradle.properties
+            echo "org.gradle.vfs.watch=true" >> gradle.properties
+            echo "android.r8.maxWorkers=4" >> gradle.properties
+            echo "android.native.buildOutput=verbose" >> gradle.properties
+            echo "KEYSTORE_PASSWORD=password" >> gradle.properties
+            echo "KEY_ALIAS=alias" >> gradle.properties
+            echo "KEY_PASSWORD=password" >> gradle.properties
+            echo "KEYSTORE_FILE=dummy.keystore" >> gradle.properties
             cat gradle.properties
 
       - name: Write PR key
@@ -59,39 +56,35 @@ EOF
         run: |
           if [ -n "$PR_KEYSTORE" ]; then
             echo "$PR_KEYSTORE" | base64 -d > pr-key.jks
-            cat > gradle.properties << 'EOF'
-android.experimental.enableNewResourceShrinker.preciseShrinking=true
-android.enableAppCompileTimeRClass=true
-android.useAndroidX=true
-android.suppressUnsupportedCompileSdk=37.0
-org.gradle.jvmargs=-Xmx2048m
-org.gradle.parallel=true
-org.gradle.tooling.parallel=true
-org.gradle.vfs.watch=true
-android.r8.maxWorkers=4
-android.native.buildOutput=verbose
-KEYSTORE_PASSWORD=$PR_KEYSTORE_PASSWORD
-KEY_ALIAS=pr-key
-KEY_PASSWORD=$PR_KEY_PASSWORD
-KEYSTORE_FILE=pr-key.jks
-EOF
+            echo "android.experimental.enableNewResourceShrinker.preciseShrinking=true" > gradle.properties
+            echo "android.enableAppCompileTimeRClass=true" >> gradle.properties
+            echo "android.useAndroidX=true" >> gradle.properties
+            echo "android.suppressUnsupportedCompileSdk=37.0" >> gradle.properties
+            echo "org.gradle.jvmargs=-Xmx2048m" >> gradle.properties
+            echo "org.gradle.parallel=true" >> gradle.properties
+            echo "org.gradle.tooling.parallel=true" >> gradle.properties
+            echo "org.gradle.vfs.watch=true" >> gradle.properties
+            echo "android.r8.maxWorkers=4" >> gradle.properties
+            echo "android.native.buildOutput=verbose" >> gradle.properties
+            echo "KEYSTORE_PASSWORD=$PR_KEYSTORE_PASSWORD" >> gradle.properties
+            echo "KEY_ALIAS=pr-key" >> gradle.properties
+            echo "KEY_PASSWORD=$PR_KEY_PASSWORD" >> gradle.properties
+            echo "KEYSTORE_FILE=pr-key.jks" >> gradle.properties
           else
-            cat > gradle.properties << 'EOF'
-android.experimental.enableNewResourceShrinker.preciseShrinking=true
-android.enableAppCompileTimeRClass=true
-android.useAndroidX=true
-android.suppressUnsupportedCompileSdk=37.0
-org.gradle.jvmargs=-Xmx2048m
-org.gradle.parallel=true
-org.gradle.tooling.parallel=true
-org.gradle.vfs.watch=true
-android.r8.maxWorkers=4
-android.native.buildOutput=verbose
-KEYSTORE_PASSWORD=password
-KEY_ALIAS=alias
-KEY_PASSWORD=password
-KEYSTORE_FILE=dummy.keystore
-EOF
+            echo "android.experimental.enableNewResourceShrinker.preciseShrinking=true" > gradle.properties
+            echo "android.enableAppCompileTimeRClass=true" >> gradle.properties
+            echo "android.useAndroidX=true" >> gradle.properties
+            echo "android.suppressUnsupportedCompileSdk=37.0" >> gradle.properties
+            echo "org.gradle.jvmargs=-Xmx2048m" >> gradle.properties
+            echo "org.gradle.parallel=true" >> gradle.properties
+            echo "org.gradle.tooling.parallel=true" >> gradle.properties
+            echo "org.gradle.vfs.watch=true" >> gradle.properties
+            echo "android.r8.maxWorkers=4" >> gradle.properties
+            echo "android.native.buildOutput=verbose" >> gradle.properties
+            echo "KEYSTORE_PASSWORD=password" >> gradle.properties
+            echo "KEY_ALIAS=alias" >> gradle.properties
+            echo "KEY_PASSWORD=password" >> gradle.properties
+            echo "KEYSTORE_FILE=dummy.keystore" >> gradle.properties
           fi
           cat gradle.properties
 
@@ -133,15 +126,4 @@ EOF
         if: always()
         with:
           name: manager-gradle
-          path: |
-            app/build/outputs/apk/release/*.apk
-            app/build/outputs/mapping/release/*.mapping
-
-      - name: Show minSdk in APK
-        if: always()
-        run: |
-          APK=$(find app/build/outputs/apk/release -name "*.apk" -type f | head -1)
-          if [ -n "$APK" ]; then
-            echo "Found APK: $APK"
-            aapt dump badging "$APK" 2>/dev/null | grep -i "sdkVersion" || echo "aapt not available, trying aapt2"
-          fi
+          path: app/build/outputs/apk/release/*.apk
