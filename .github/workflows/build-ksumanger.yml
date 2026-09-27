@@ -30,15 +30,35 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check files exist
+        run: |
+          ls -la gradlew
+          ls -la gradle.properties
+          ls -la dummy.keystore
+          ls -la gradle/wrapper/gradle-wrapper.jar
+          pwd
+
       - name: Write key
         if: ${{ ( github.event_name != 'pull_request' && (github.ref == 'refs/heads/lineage-17.1' )) }}
         run: |
-            {
-              echo KEYSTORE_PASSWORD='password'
-              echo KEY_ALIAS='alias'
-              echo KEY_PASSWORD='password'
-              echo KEYSTORE_FILE='dummy.keystore'
-            } >> gradle.properties
+            cp gradle.properties gradle.properties.bak
+            cat > gradle.properties << 'EOF'
+android.experimental.enableNewResourceShrinker.preciseShrinking=true
+android.enableAppCompileTimeRClass=true
+android.useAndroidX=true
+android.suppressUnsupportedCompileSdk=37.0
+org.gradle.jvmargs=-Xmx2048m
+org.gradle.parallel=true
+org.gradle.tooling.parallel=true
+org.gradle.vfs.watch=true
+android.r8.maxWorkers=4
+android.native.buildOutput=verbose
+KEYSTORE_PASSWORD=password
+KEY_ALIAS=alias
+KEY_PASSWORD=password
+KEYSTORE_FILE=dummy.keystore
+EOF
+            cat gradle.properties
 
       - name: Write PR key
         if: github.event_name == 'pull_request'
@@ -49,20 +69,41 @@ jobs:
         run: |
           if [ -n "$PR_KEYSTORE" ]; then
             echo "$PR_KEYSTORE" | base64 -d > pr-key.jks
-            {
-              echo KEYSTORE_PASSWORD="$PR_KEYSTORE_PASSWORD"
-              echo KEY_ALIAS='pr-key'
-              echo KEY_PASSWORD="$PR_KEY_PASSWORD"
-              echo KEYSTORE_FILE='pr-key.jks'
-            } >> gradle.properties
+            cat > gradle.properties << 'EOF'
+android.experimental.enableNewResourceShrinker.preciseShrinking=true
+android.enableAppCompileTimeRClass=true
+android.useAndroidX=true
+android.suppressUnsupportedCompileSdk=37.0
+org.gradle.jvmargs=-Xmx2048m
+org.gradle.parallel=true
+org.gradle.tooling.parallel=true
+org.gradle.vfs.watch=true
+android.r8.maxWorkers=4
+android.native.buildOutput=verbose
+KEYSTORE_PASSWORD=$PR_KEYSTORE_PASSWORD
+KEY_ALIAS=pr-key
+KEY_PASSWORD=$PR_KEY_PASSWORD
+KEYSTORE_FILE=pr-key.jks
+EOF
           else
-            {
-              echo KEYSTORE_PASSWORD='password'
-              echo KEY_ALIAS='alias'
-              echo KEY_PASSWORD='password'
-              echo KEYSTORE_FILE='dummy.keystore'
-            } >> gradle.properties
+            cat > gradle.properties << 'EOF'
+android.experimental.enableNewResourceShrinker.preciseShrinking=true
+android.enableAppCompileTimeRClass=true
+android.useAndroidX=true
+android.suppressUnsupportedCompileSdk=37.0
+org.gradle.jvmargs=-Xmx2048m
+org.gradle.parallel=true
+org.gradle.tooling.parallel=true
+org.gradle.vfs.watch=true
+android.r8.maxWorkers=4
+android.native.buildOutput=verbose
+KEYSTORE_PASSWORD=password
+KEY_ALIAS=alias
+KEY_PASSWORD=password
+KEYSTORE_FILE=dummy.keystore
+EOF
           fi
+          cat gradle.properties
 
       - name: Setup Java
         uses: actions/setup-java@v6
@@ -88,15 +129,29 @@ jobs:
 
       - name: Build with Gradle
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            ./gradlew clean assembleRelease --stacktrace -PIS_PR_BUILD=true
-          else
-            ./gradlew clean assembleRelease --stacktrace
-          fi
+          ./gradlew clean assembleRelease --stacktrace
+        env:
+          IS_PR_BUILD: "false"
+
+      - name: Check APK exists
+        run: |
+          ls -la app/build/outputs/apk/release/ 2>/dev/null || echo "APK not found"
+          find . -name "*.apk" -type f 2>/dev/null || echo "No APK found"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
         if: always()
         with:
           name: manager-gradle
-          path: app/build/outputs/apk/release/*.apk
+          path: |
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/mapping/release/*.mapping
+
+      - name: Show minSdk in APK
+        if: always()
+        run: |
+          APK=$(find app/build/outputs/apk/release -name "*.apk" -type f | head -1)
+          if [ -n "$APK" ]; then
+            echo "Found APK: $APK"
+            aapt dump badging "$APK" 2>/dev/null | grep -i "sdkVersion" || echo "aapt not available, trying aapt2"
+          fi
