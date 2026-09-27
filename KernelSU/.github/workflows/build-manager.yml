@@ -12,6 +12,8 @@ on:
       - '.github/scripts/setup-rust-build.sh'
       - 'repack_apk.py'
       - 'manager/**'
+      - 'manager/build.gradle.kts'
+      - 'manager/app/build.gradle.kts'
       - 'kernel/**'
       - 'userspace/**'
       - 'Cargo.lock'
@@ -27,6 +29,8 @@ on:
       - '.github/scripts/setup-rust-build.sh'
       - 'repack_apk.py'
       - 'manager/**'
+      - 'manager/build.gradle.kts'
+      - 'manager/app/build.gradle.kts'
       - 'kernel/**'
       - 'userspace/**'
       - 'Cargo.lock'
@@ -188,6 +192,13 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
+
+      - name: Verify minSdk configuration
+        run: |
+          echo "=== MinSdk Configuration ==="
+          grep "androidMinSdkVersion" build.gradle.kts
+          grep "androidTargetSdkVersion" build.gradle.kts
+          grep "androidCompileSdkVersion" build.gradle.kts
 
       - name: Build with Gradle
         run: |

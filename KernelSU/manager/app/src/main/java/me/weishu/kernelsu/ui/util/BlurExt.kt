@@ -1,5 +1,6 @@
 package me.weishu.kernelsu.ui.util
 
+import android.os.Build
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -14,7 +15,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 fun rememberBlurBackdrop(enableBlur: Boolean): LayerBackdrop? {
-    if (!enableBlur || !isRenderEffectSupported()) return null
+    if (!enableBlur || !isRenderEffectSupported() || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return null
     val surfaceColor = MiuixTheme.colorScheme.surface
     return rememberLayerBackdrop {
         drawRect(surfaceColor)
@@ -29,7 +30,7 @@ fun BlurredBar(
     content: @Composable () -> Unit,
 ) {
     Box(
-        modifier = if (blurActive && backdrop != null) {
+        modifier = if (blurActive && backdrop != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             Modifier.textureBlur(
                 backdrop = backdrop,
                 shape = RectangleShape,

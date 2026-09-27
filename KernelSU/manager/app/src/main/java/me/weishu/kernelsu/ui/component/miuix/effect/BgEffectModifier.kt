@@ -4,7 +4,6 @@ package me.weishu.kernelsu.ui.component.miuix.effect
 
 import android.annotation.SuppressLint
 import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -161,8 +160,12 @@ private class BgEffectNode(
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun ContentDrawScope.draw() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            drawRect(surface)
+            drawContent()
+            return
+        }
         drawRect(surface)
         if (effectBackground) {
             val alphaValue = alpha()
