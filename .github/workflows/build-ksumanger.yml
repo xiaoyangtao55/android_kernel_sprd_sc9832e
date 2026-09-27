@@ -3,18 +3,8 @@ name: Build KSU-Manager
 on:
   push:
     branches: [ "lineage-17.1" ]
-    paths:
-      - '.github/workflows/build-ksumanger.yml'
-      - 'KernelSU/manager/**'
-      - 'KernelSU/build.gradle.kts'
-      - 'KernelSU/repack_apk.py'
   pull_request:
     branches: [ "lineage-17.1" ]
-    paths:
-      - '.github/workflows/build-ksumanger.yml'
-      - 'KernelSU/manager/**'
-      - 'KernelSU/build.gradle.kts'
-      - 'KernelSU/repack_apk.py'
   workflow_dispatch:
 
 jobs:
