@@ -126,4 +126,4 @@ jobs:
         if: always()
         with:
           name: manager-gradle
-          path: app/build/outputs/apk/release/*.apk
+          path: KernelSU/manager/app/build/outputs/apk/release/*.apk
