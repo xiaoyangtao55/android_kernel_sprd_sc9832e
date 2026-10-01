@@ -25,11 +25,23 @@ fun getGitDescribe(): String {
     return process.inputStream.bufferedReader().use { it.readText().trim() }
 }
 
+// KernelSU is vendored into this kernel tree, so `git rev-list --count HEAD` counts the
+// *kernel* repository's squashed history instead of KernelSU's. That silently yields a version
+// code which no longer matches the KSU_VERSION the kernel module is compiled with (see
+// KernelSU/kernel/Makefile), and Android then refuses to install the manager over an existing
+// one. The build environment pins both values from KernelSU/SOURCE_REVISION to keep them in sync.
+fun pinnedVersionCode(): Int? = System.getenv("KSU_VERSION_CODE")?.trim()?.toIntOrNull()
+
+fun pinnedVersionName(): String? =
+    System.getenv("KSU_VERSION_NAME")?.trim()?.takeIf { it.isNotEmpty() }
+
 fun getVersionCode(): Int {
+    pinnedVersionCode()?.let { return it }
     val commitCount = getGitCommitCount()
     return 30000 + commitCount - 95
 }
 
 fun getVersionName(): String {
+    pinnedVersionName()?.let { return it }
     return getGitDescribe()
 }

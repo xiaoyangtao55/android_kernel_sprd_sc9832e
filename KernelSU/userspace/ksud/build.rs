@@ -9,7 +9,31 @@ const BOOTSTRAP_SOURCE: &str = "src/lkm_image_bootstrap.S";
 const BOOTSTRAP_OBJECT: &str = "lkm_image_bootstrap.o";
 const PREPARED_BOOTSTRAP_OBJECT: &str = ".lkm_image_bootstrap.o";
 
+/// Version pinned by the build environment.
+///
+/// KernelSU is vendored into a kernel tree, so the `git rev-list --count HEAD` below counts the
+/// *kernel* repository's (squashed) history rather than KernelSU's. That makes the version code
+/// drift away from the KSU_VERSION the kernel module was compiled with, so CI pins both values
+/// from KernelSU/SOURCE_REVISION instead.
+fn pinned_version() -> Option<(u32, String)> {
+    let code = env::var("KSU_VERSION_CODE")
+        .ok()?
+        .trim()
+        .parse::<u32>()
+        .ok()?;
+    let name = env::var("KSU_VERSION_NAME")
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| code.to_string());
+    Some((code, name.trim_start_matches('v').to_string()))
+}
+
 fn get_git_version() -> Result<(u32, String), std::io::Error> {
+    if let Some(pinned) = pinned_version() {
+        return Ok(pinned);
+    }
+
     let output = Command::new("git")
         .args(["rev-list", "--count", "HEAD"])
         .output()?;
@@ -218,6 +242,9 @@ fn assemble_bootstrap() {
 
 fn main() {
     assemble_bootstrap();
+
+    println!("cargo:rerun-if-env-changed=KSU_VERSION_CODE");
+    println!("cargo:rerun-if-env-changed=KSU_VERSION_NAME");
 
     let (code, name) = match get_git_version() {
         Ok((code, name)) => (code, name),

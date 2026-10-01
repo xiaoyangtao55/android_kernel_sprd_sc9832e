@@ -7,9 +7,107 @@ on:
     branches: [ "lineage-17.1" ]
   workflow_dispatch:
 
+# KernelSU is vendored into this kernel tree as a plain directory, so its own CI lives at
+# KernelSU/.github/workflows/ and never runs here -- GitHub only reads .github/workflows/ at the
+# repository root, and those files reference "./.github/workflows/*.yml" relative to the root.
+# This workflow reproduces the essential pipeline of KernelSU's build-manager.yml:
+#
+#   version ──> build-manager (Gradle APK) ──┐
+#           └─> build-ksud    (Rust ksud)  ──┴─> repack-manager (inject libksud.so, align, resign)
+#
+# The installable APK is the "manager" artifact from repack-manager. The intermediate
+# "manager-gradle" artifact is NOT usable on its own: libksud.so is gitignored, no Gradle task
+# builds it, the kernel module does not embed it, and the app looks it up at
+# nativeLibraryDir/libksud.so (KsuCli.kt, AppZygotePreload.java).
+#
+# This is a non-GKI kernel (4.4, CONFIG_KSU=y built in), so KernelSU's build-lkm / build-ksuinit
+# / build-ksud-extra jobs are intentionally not reproduced.
+
 jobs:
-  build-manager:
+  version:
     runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.read.outputs.code }}
+      name: ${{ steps.read.outputs.name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # `git rev-list --count HEAD` would count this kernel repository's squashed history
+      # (39 commits -> version code 29944) instead of KernelSU's (-> 32628). Pinning code and name
+      # from SOURCE_REVISION keeps manager, ksud and the kernel module (-DKSU_VERSION=32628)
+      # in agreement, and avoids INSTALL_FAILED_VERSION_DOWNGRADE when upgrading an existing
+      # manager install.
+      - name: Read KernelSU/SOURCE_REVISION
+        id: read
+        run: |
+          code=$(sed -n 's/^KSU_VERSION=//p' KernelSU/SOURCE_REVISION | tr -d '[:space:]')
+          name=$(sed -n 's/^SOURCE_TAG=//p' KernelSU/SOURCE_REVISION | tr -d '[:space:]')
+          if [ -z "$code" ]; then
+            echo "::error::KSU_VERSION missing from KernelSU/SOURCE_REVISION"
+            exit 1
+          fi
+          if [ -z "$name" ]; then
+            name="v$code"
+            echo "::warning::SOURCE_TAG missing from KernelSU/SOURCE_REVISION, using $name"
+          fi
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "Pinned KSU version: code=$code name=$name"
+
+  build-ksud:
+    needs: version
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - aarch64-linux-android
+          - armv7-linux-androideabi
+          - x86_64-linux-android
+    env:
+      KSU_VERSION_CODE: ${{ needs.version.outputs.code }}
+      KSU_VERSION_NAME: ${{ needs.version.outputs.name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup rustup
+        run: |
+          rustup update stable
+          rustup target add ${{ matrix.target }}
+
+      # Required: ksud's build.rs assembles an AArch64 bootstrap object with the NDK clang, and
+      # bindgen needs libclang for the Android targets.
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r29
+
+      - name: Build ksud
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          source KernelSU/.github/scripts/setup-rust-build.sh ${{ matrix.target }} 26
+          cargo build --target "$TRIPLE" --release --manifest-path ./KernelSU/userspace/ksud/Cargo.toml
+          # cargo puts target/ at the workspace root, i.e. KernelSU/target/ (not the repo root).
+          file "KernelSU/target/${{ matrix.target }}/release/ksud"
+
+      - name: Upload ksud
+        uses: actions/upload-artifact@v7
+        with:
+          name: ksud-${{ matrix.target }}
+          path: KernelSU/target/${{ matrix.target }}/release/ksud
+
+  build-manager:
+    needs: version
+    runs-on: ubuntu-latest
+    env:
+      KSU_VERSION_CODE: ${{ needs.version.outputs.code }}
+      KSU_VERSION_NAME: ${{ needs.version.outputs.name }}
     defaults:
       run:
         working-directory: ./KernelSU/manager
@@ -127,3 +225,82 @@ jobs:
         with:
           name: manager-gradle
           path: KernelSU/manager/app/build/outputs/apk/release/*.apk
+
+  repack-manager:
+    needs: [ version, build-manager, build-ksud ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Download manager APK
+        uses: actions/download-artifact@v8
+        with:
+          name: manager-gradle
+          path: artifacts/manager-gradle
+
+      - name: Download ksud binaries
+        uses: actions/download-artifact@v8
+        with:
+          pattern: ksud-*
+          path: artifacts/ksud
+
+      # repack_apk.py resolves everything relative to its own directory (KernelSU/):
+      #   KernelSU/manager/app/build/outputs/apk/release/*.apk
+      #   KernelSU/target/<rust-target-triple>/release/ksud
+      - name: Place artifacts
+        run: |
+          set -euo pipefail
+
+          mkdir -p KernelSU/manager/app/build/outputs/apk/release
+          apk=$(find artifacts/manager-gradle -type f -name '*.apk' | head -n1)
+          test -n "$apk"
+          cp -f "$apk" KernelSU/manager/app/build/outputs/apk/release/
+
+          for triple in aarch64-linux-android armv7-linux-androideabi x86_64-linux-android; do
+            mkdir -p "KernelSU/target/$triple/release"
+            ksud=$(find "artifacts/ksud/ksud-$triple" -type f -name ksud | head -n1)
+            test -n "$ksud"
+            cp -f "$ksud" "KernelSU/target/$triple/release/ksud"
+          done
+
+          ls -l KernelSU/manager/app/build/outputs/apk/release/
+          find KernelSU/target -type f -name ksud
+
+      # This is the step that was missing: it injects each ksud as lib/<abi>/libksud.so,
+      # zipaligns to 16 KB pages and re-signs the APK.
+      - name: Repack and resign
+        working-directory: ./KernelSU
+        run: |
+          python3 repack_apk.py repack \
+            -b release \
+            -t release \
+            -a arm64-v8a \
+            -a armeabi-v7a \
+            -a x86_64 \
+            -K manager/dummy.keystore \
+            -A alias \
+            -P password \
+            -S password \
+            --strip
+
+      - name: Verify libksud.so is inside the APK
+        run: |
+          set -euo pipefail
+          apk=$(find KernelSU/dist -maxdepth 1 -name '*.apk' | head -n1)
+          test -n "$apk"
+          echo "APK: $apk"
+          count=$(unzip -l "$apk" | grep -cE 'lib/(arm64-v8a|armeabi-v7a|x86_64)/libksud\.so')
+          unzip -l "$apk" | grep -E 'lib/(arm64-v8a|armeabi-v7a|x86_64)/libksud\.so'
+          test "$count" -eq 3
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: manager
+          path: KernelSU/dist/*.apk

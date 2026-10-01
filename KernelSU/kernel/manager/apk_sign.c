@@ -366,7 +366,7 @@ bool is_manager_apk(char *path)
 	if (check_v2_signature(path, 0x375, "484fcba6e6c43b1fb09700633bf2fb4758f13cb0b2f4457b80d075084b26c588"))
 		return true;
 
-	// custom keystore (my-release-key.jks)
+	// xiaoyangtao55/KernelSU
 	if (check_v2_signature(path, 0x369, "5085235bf1a42ab186a39900f8c5c11603c75c50fd2455caa21ce6d7b2b89de0"))
 		return true;
 
