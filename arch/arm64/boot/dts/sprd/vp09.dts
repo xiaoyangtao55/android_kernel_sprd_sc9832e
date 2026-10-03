@@ -59,12 +59,13 @@
 			phandle = <0xa7>;
 		};
 
-	syscon@402b0000 {
-		compatible = "sprd,sys-pmu-apb\0syscon";
-		reg = <0x00 0x402b0000 0x00 0x10000>;
-		hwlocks = <0x02 0x01>;
-		hwlock-names = "syscon";
-		linux,phandle = <0x39>;
+		syscon@402b0000 {
+			compatible = "sprd,sys-pmu-apb\0syscon";
+			reg = <0x00 0x402b0000 0x00 0x10000>;
+			#syscon-cells = <0x02>;
+			hwlocks = <0x02 0x01>;
+			hwlock-names = "syscon";
+			linux,phandle = <0x39>;
 			phandle = <0x39>;
 		};
 
@@ -214,49 +215,49 @@
 				status = "okay";
 
 				sensor-main@20 {
-				compatible = "sprd,sensor-main";
-				reg = <0x20>;
-				clock-names = "clk_src\0sensor_eb\0clk_96m\0clk_76m8\0clk_48m\0clk_26m";
-				clocks = <0x07 0x08 0x01 0x09 0x0a 0x0b 0x05>;
-				vddio-supply = <0x0c>;
-				vddcama-supply = <0x0d>;
-				vddcamd-supply = <0x0e>;
-				vddcammot-supply = <0x0f>;
-				reset-gpios = <0x10 0x2d 0x00>;
-				power-down-gpios = <0x10 0x2f 0x00>;
-				host = "dcam0";
+					compatible = "sprd,sensor-main";
+					reg = <0x20>;
+					clock-names = "clk_src\0sensor_eb\0clk_96m\0clk_76m8\0clk_48m\0clk_26m";
+					clocks = <0x07 0x08 0x01 0x09 0x0a 0x0b 0x05>;
+					vddio-supply = <0x0c>;
+					vddcama-supply = <0x0d>;
+					vddcamd-supply = <0x0e>;
+					vddcammot-supply = <0x0f>;
+					reset-gpios = <0x10 0x2d 0x00>;
+					power-down-gpios = <0x10 0x2f 0x00>;
+					host = "dcam0";
 
-				port {
+					port {
 
 						endpoint {
 							remote-endpoint = <0x11>;
 							linux,phandle = <0x60>;
 							phandle = <0x60>;
 						};
-				};
+					};
 				};
 
 				sensor-sub@21 {
-				compatible = "sprd,sensor-sub";
-				reg = <0x21>;
-				clock-names = "clk_src\0sensor_eb\0clk_96m\0clk_76m8\0clk_48m\0clk_26m";
-				clocks = <0x07 0x08 0x01 0x09 0x0a 0x0b 0x05>;
-				vddio-supply = <0x0c>;
-				vddcama-supply = <0x0d>;
-				vddcamd-supply = <0x0e>;
-				vddcammot-supply = <0x0f>;
-				reset-gpios = <0x10 0x2c 0x00>;
-				power-down-gpios = <0x10 0x2e 0x00>;
-				host = "dcam1";
+					compatible = "sprd,sensor-sub";
+					reg = <0x21>;
+					clock-names = "clk_src\0sensor_eb\0clk_96m\0clk_76m8\0clk_48m\0clk_26m";
+					clocks = <0x07 0x08 0x01 0x09 0x0a 0x0b 0x05>;
+					vddio-supply = <0x0c>;
+					vddcama-supply = <0x0d>;
+					vddcamd-supply = <0x0e>;
+					vddcammot-supply = <0x0f>;
+					reset-gpios = <0x10 0x2c 0x00>;
+					power-down-gpios = <0x10 0x2e 0x00>;
+					host = "dcam1";
 
-				port {
+					port {
 
 						endpoint {
 							remote-endpoint = <0x12>;
 							linux,phandle = <0x62>;
 							phandle = <0x62>;
 						};
-				};
+					};
 				};
 			};
 
@@ -264,7 +265,7 @@
 				compatible = "sprd,r8p0-i2c";
 				reg = <0x00 0x70600000 0x00 0x1000>;
 				interrupts = <0x00 0x0c 0x04>;
-				clock-names = "enable", "i2c", "source";
+				clock-names = "enable\0i2c\0source";
 				clocks = <0x03 0x09 0x13 0x05>;
 				clock-frequency = <0x61a80>;
 				#address-cells = <0x01>;
@@ -292,7 +293,7 @@
 				compatible = "sprd,r8p0-i2c";
 				reg = <0x00 0x70700000 0x00 0x1000>;
 				interrupts = <0x00 0x0d 0x04>;
-				clock-names = "enable", "i2c", "source";
+				clock-names = "enable\0i2c\0source";
 				clocks = <0x03 0x0a 0x14 0x05>;
 				clock-frequency = <0x61a80>;
 				#address-cells = <0x01>;
@@ -358,7 +359,6 @@
 				};
 			};
 
-
 			i2c@70900000 {
 				compatible = "sprd,r8p0-i2c";
 				reg = <0x00 0x70900000 0x00 0x1000>;
@@ -371,27 +371,27 @@
 				status = "disabled";
 
 				flash-ic@63 {
-				compatible = "sprd,flash-ocp8137";
-				reg = <0x63>;
-				sprd,flash-ic = <0x1fc9>;
-				sprd,torch = <0x01>;
-				sprd,preflash = <0x01>;
-				sprd,highlight = <0x01>;
-				sprd,torch-level = <0x80>;
-				sprd,preflash-level = <0x80>;
-				sprd,highlight-level = <0x80>;
-				sprd,lvfm-enable = <0x01>;
-				flash-torch-en-gpios = <0x10 0x58 0x00>;
-				flash-chip-en-gpios = <0x10 0x59 0x00>;
-				flash-en-gpios = <0x10 0x4c 0x00>;
-				flash-sync-gpios = <0x10 0x8d 0x00>;
+					compatible = "sprd,flash-ocp8137";
+					reg = <0x63>;
+					sprd,flash-ic = <0x1fc9>;
+					sprd,torch = <0x01>;
+					sprd,preflash = <0x01>;
+					sprd,highlight = <0x01>;
+					sprd,torch-level = <0x80>;
+					sprd,preflash-level = <0x80>;
+					sprd,highlight-level = <0x80>;
+					sprd,lvfm-enable = <0x01>;
+					flash-torch-en-gpios = <0x10 0x58 0x00>;
+					flash-chip-en-gpios = <0x10 0x59 0x00>;
+					flash-en-gpios = <0x10 0x4c 0x00>;
+					flash-sync-gpios = <0x10 0x8d 0x00>;
 				};
 
 				charger@6a {
-				compatible = "fairchild,fan54015_chg";
-				reg = <0x6a>;
-				chg-fault-gpios = <0x10 0x08 0x00>;
-				vbus-det-gpios = <0x17 0x00 0x00>;
+					compatible = "fairchild,fan54015_chg";
+					reg = <0x6a>;
+					chg-fault-gpios = <0x10 0x08 0x00>;
+					vbus-det-gpios = <0x17 0x00 0x00>;
 				};
 			};
 
@@ -616,11 +616,11 @@
 
 				port {
 
-				endpoint@0 {
+					endpoint@0 {
 						remote-endpoint = <0x32>;
 						linux,phandle = <0x34>;
 						phandle = <0x34>;
-				};
+					};
 				};
 			};
 
@@ -638,23 +638,23 @@
 				sprd,soc = "sharkle";
 
 				port@0 {
-				reg = <0x00>;
+					reg = <0x00>;
 
-				endpoint {
+					endpoint {
 						remote-endpoint = <0x33>;
 						linux,phandle = <0x36>;
 						phandle = <0x36>;
-				};
+					};
 				};
 
 				port@1 {
-				reg = <0x01>;
+					reg = <0x01>;
 
-				endpoint {
+					endpoint {
 						remote-endpoint = <0x34>;
 						linux,phandle = <0x32>;
 						phandle = <0x32>;
-				};
+					};
 				};
 			};
 
@@ -668,23 +668,23 @@
 				sprd,soc = "sharkle";
 
 				port@0 {
-				reg = <0x00>;
+					reg = <0x00>;
 
-				endpoint {
+					endpoint {
 						remote-endpoint = <0x35>;
 						linux,phandle = <0xdb>;
 						phandle = <0xdb>;
-				};
+					};
 				};
 
 				port@1 {
-				reg = <0x01>;
+					reg = <0x01>;
 
-				endpoint {
+					endpoint {
 						remote-endpoint = <0x36>;
 						linux,phandle = <0x33>;
 						phandle = <0x33>;
-				};
+					};
 				};
 			};
 		};
@@ -824,69 +824,69 @@
 				reg = <0x00 0x402a0000 0x00 0x10000>;
 
 				reg2-iis0-0 {
-				pins = <0x1c11032 0x00>;
-				linux,phandle = <0x3a>;
-				phandle = <0x3a>;
+					pins = <0x1c11032 0x00>;
+					linux,phandle = <0x3a>;
+					phandle = <0x3a>;
 				};
 
 				reg2-iis0-1 {
-				pins = <0x1c11032 0x01>;
-				linux,phandle = <0x3b>;
-				phandle = <0x3b>;
+					pins = <0x1c11032 0x01>;
+					linux,phandle = <0x3b>;
+					phandle = <0x3b>;
 				};
 
 				reg3-iis0-2 {
-				pins = <0x1c11032 0x02>;
-				linux,phandle = <0x3c>;
-				phandle = <0x3c>;
+					pins = <0x1c11032 0x02>;
+					linux,phandle = <0x3c>;
+					phandle = <0x3c>;
 				};
 
 				reg2-iis0-3 {
-				pins = <0x1c11032 0x03>;
-				linux,phandle = <0x3d>;
-				phandle = <0x3d>;
+					pins = <0x1c11032 0x03>;
+					linux,phandle = <0x3d>;
+					phandle = <0x3d>;
 				};
 
 				reg2-iis0-4 {
-				pins = <0x1c11032 0x04>;
-				linux,phandle = <0x3e>;
-				phandle = <0x3e>;
+					pins = <0x1c11032 0x04>;
+					linux,phandle = <0x3e>;
+					phandle = <0x3e>;
 				};
 
 				reg3-iis1-0 {
-				pins = <0x2710a33 0x00>;
-				linux,phandle = <0x3f>;
-				phandle = <0x3f>;
+					pins = <0x2710a33 0x00>;
+					linux,phandle = <0x3f>;
+					phandle = <0x3f>;
 				};
 
 				reg3-iis1-1 {
-				pins = <0x2710a33 0x02>;
-				linux,phandle = <0x40>;
-				phandle = <0x40>;
+					pins = <0x2710a33 0x02>;
+					linux,phandle = <0x40>;
+					phandle = <0x40>;
 				};
 
 				reg3-iis1-2 {
-				pins = <0x2710a33 0x03>;
-				linux,phandle = <0x41>;
-				phandle = <0x41>;
+					pins = <0x2710a33 0x03>;
+					linux,phandle = <0x41>;
+					phandle = <0x41>;
 				};
 
 				reg3-iis1-3 {
-				pins = <0x2710a33 0x01>;
-				linux,phandle = <0x42>;
-				phandle = <0x42>;
+					pins = <0x2710a33 0x01>;
+					linux,phandle = <0x42>;
+					phandle = <0x42>;
 				};
 
 				reg3-iis1-4 {
-				pins = <0x2710a33 0x04>;
-				linux,phandle = <0x43>;
-				phandle = <0x43>;
+					pins = <0x2710a33 0x04>;
+					linux,phandle = <0x43>;
+					phandle = <0x43>;
 				};
 
 				reg3-iis1-5 {
-				pins = <0x2710a33 0x05>;
-				linux,phandle = <0x44>;
-				phandle = <0x44>;
+					pins = <0x2710a33 0x05>;
+					linux,phandle = <0x44>;
+					phandle = <0x44>;
 				};
 			};
 
@@ -959,53 +959,53 @@
 				sprd,hw-channels = <0x1e 0x8c20>;
 
 				pmic@0 {
-				compatible = "sprd,sc2721";
-				reg = <0x00>;
-				spi-max-frequency = <0x18cba80>;
-				#address-cells = <0x01>;
-				#size-cells = <0x00>;
-				interrupt-controller;
-				#interrupt-cells = <0x02>;
-				interrupts = <0x00 0x26 0x04>;
-				sprd,pmic_intc_base = <0xc0>;
-				sprd,pmic_intc_irqmax = <0x10>;
-				linux,phandle = <0x49>;
-				phandle = <0x49>;
+					compatible = "sprd,sc2721";
+					reg = <0x00>;
+					spi-max-frequency = <0x18cba80>;
+					#address-cells = <0x01>;
+					#size-cells = <0x00>;
+					interrupt-controller;
+					#interrupt-cells = <0x02>;
+					interrupts = <0x00 0x26 0x04>;
+					sprd,pmic_intc_base = <0xc0>;
+					sprd,pmic_intc_irqmax = <0x10>;
+					linux,phandle = <0x49>;
+					phandle = <0x49>;
 
-				timer@00 {
+					timer@00 {
 						compatible = "sprd,sc2721-chg-timer";
 						reg = <0x00>;
 						interrupt-parent = <0x49>;
 						interrupts = <0x07 0x04>;
-				};
+					};
 
-				watchdog@40 {
+					watchdog@40 {
 						compatible = "sprd,sc2721-wdt";
 						reg = <0x40>;
 						linux,phandle = <0x47>;
 						phandle = <0x47>;
-				};
+					};
 
-				watchdog@80 {
+					watchdog@80 {
 						compatible = "sprd,sc2721-chg-wdt";
 						reg = <0x80>;
 						status = "disabled";
-				};
+					};
 
-				bltc-rgb@180 {
+					bltc-rgb@180 {
 						compatible = "sprd,sc2721-bltc-rgb";
 						reg = <0x180>;
 						status = "disabled";
-				};
+					};
 
-				rtc@200 {
+					rtc@200 {
 						compatible = "sprd,sc2721-rtc";
 						interrupt-parent = <0x49>;
 						interrupts = <0x01 0x04>;
 						reg = <0x200>;
-				};
+					};
 
-				gpio-controller@280 {
+					gpio-controller@280 {
 						compatible = "sprd,sc2721-eic";
 						reg = <0x280>;
 						interrupts = <0x04 0x04>;
@@ -1018,27 +1018,27 @@
 						#interrupt-cells = <0x02>;
 						linux,phandle = <0x17>;
 						phandle = <0x17>;
-				};
+					};
 
-				kpled@2ac {
+					kpled@2ac {
 						compatible = "sprd,sc2721-kpled";
 						brightness_max = <0xff>;
 						brightness_min = <0x00>;
 						run_mode = <0x01>;
 						reg = <0x2ac 0x2b0>;
 						status = "disabled";
-				};
+					};
 
-				efuse@300 {
+					efuse@300 {
 						compatible = "sprd,sc2721-efuse";
 						reg = <0x300>;
 						sprd,block-num = <0x20>;
 						sprd,block-width = <0x10>;
 						hwlocks = <0x02 0x0c>;
 						hwlock-names = "pmic_efuse";
-				};
+					};
 
-				typec@380 {
+					typec@380 {
 						compatible = "sprd,typec";
 						interrupt-parent = <0x49>;
 						interrupts = <0x0a 0x04>;
@@ -1047,9 +1047,9 @@
 						tsleep = <0x00>;
 						ext-ldo-sw = <0x00>;
 						status = "okay";
-				};
+					};
 
-				adc@400 {
+					adc@400 {
 						compatible = "sprd,sc2721-adc";
 						reg = <0x400>;
 						#io-channel-cells = <0x01>;
@@ -1057,9 +1057,9 @@
 						hwlock-names = "pmic_adc";
 						linux,phandle = <0xb4>;
 						phandle = <0xb4>;
-				};
+					};
 
-				audio-codec@700 {
+					audio-codec@700 {
 						compatible = "sprd,sc2721-audio-codec";
 						#sound-dai-cells = <0x01>;
 						reg = <0x700>;
@@ -1069,9 +1069,9 @@
 						digital-codec = <0x4a>;
 						linux,phandle = <0xb8>;
 						phandle = <0xb8>;
-				};
+					};
 
-				power-controller@810 {
+					power-controller@810 {
 						compatible = "sprd,sc2721-regulator";
 						reg = <0xc28 0xcd4 0xd00 0xd1c 0xd20 0xd3c>;
 
@@ -1383,51 +1383,51 @@
 								sprd,default-on;
 							};
 						};
-				};
+					};
 
-				fast-charger@900 {
+					fast-charger@900 {
 						compatible = "sprd,sc2721-fchg";
 						reg = <0x900>;
 						interrupt-parent = <0x49>;
 						interrupts = <0x05 0x04>;
 						status = "disabled";
-				};
+					};
 
-				fgu@a00 {
+					fgu@a00 {
 						compatible = "sprd,sc2721-fgu";
 						reg = <0xa00>;
 						interrupt-parent = <0x49>;
 						interrupts = <0x03 0x04>;
 						ocv-type = <0x01>;
-				};
+					};
 
-				global@c00 {
+					global@c00 {
 						compatible = "sprd,pmic-glb";
 						reg = <0xc00>;
-				};
+					};
 
-				vibrator@eb4 {
+					vibrator@eb4 {
 						compatible = "sprd,sc2721-vibrator";
 						reg = <0xeb4>;
-				};
+					};
 
-				charger@ec0 {
+					charger@ec0 {
 						compatible = "sprd,sc2721-charger";
 						reg = <0xec0>;
 						chg-cv-gpios = <0x17 0x04 0x00>;
 						chg-ovi-gpios = <0x17 0x06 0x00>;
 						status = "okay";
-				};
+					};
 
-				power@efc {
+					power@efc {
 						compatible = "sprd,sc2721-poweroff";
 						reg = <0xefc>;
-				};
+					};
 
-				reset@f1c {
+					reset@f1c {
 						compatible = "sprd,sc2721-7sreset";
 						reg = <0xf1c 0xeec>;
-				};
+					};
 				};
 			};
 
@@ -1495,10 +1495,10 @@
 				clocks = <0x51 0x00 0x51 0x06 0x08 0x00 0x37 0x19 0x52 0x53 0x54 0x0a 0x53 0x55 0x56 0x56>;
 			};
 
-			iommu@60800040 {
+			iommu@60800000 {
 				compatible = "sprd,iommuexle-dcam";
-				reg = <0x00 0x60800040 0x00 0x04 0x00 0x60802100 0x00 0x60 0x00 0x40000000 0x00 0x10000000>;
-				reg_name = "mmu_interrupt_reg", "mmu_reg", "iova pool";
+				reg = <0x00 0x60800000 0x00 0x2100 0x00 0x60802100 0x00 0x60 0x00 0x40000000 0x00 0x10000000>;
+				reg_name = "mmu_interrupt_reg\0mmu_reg\0iova pool";
 				status = "okay";
 				#iommu-cells = <0x00>;
 				linux,phandle = <0x50>;
@@ -1622,11 +1622,11 @@
 
 				port {
 
-				endpoint {
+					endpoint {
 						remote-enpoint = <0x60>;
 						linux,phandle = <0x11>;
 						phandle = <0x11>;
-				};
+					};
 				};
 			};
 
@@ -1638,11 +1638,11 @@
 
 				port {
 
-				endpoint {
+					endpoint {
 						remote-enpoint = <0x62>;
 						linux,phandle = <0x12>;
 						phandle = <0x12>;
-				};
+					};
 				};
 			};
 
@@ -1704,24 +1704,24 @@
 				#size-cells = <0x00>;
 
 				port@0 {
-				reg = <0x00>;
+					reg = <0x00>;
 
-				endpoint {
+					endpoint {
 						remote-endpoint = <0x64>;
 						linux,phandle = <0x66>;
 						phandle = <0x66>;
-				};
+					};
 				};
 
 				port@1 {
-				reg = <0x00>;
+					reg = <0x00>;
 
-				endpoint {
+					endpoint {
 						slave-mode;
 						remote-endpoint = <0x65>;
 						linux,phandle = <0x67>;
 						phandle = <0x67>;
-				};
+					};
 				};
 			};
 		};
@@ -1735,10 +1735,10 @@
 			port {
 
 				endpoint {
-				slave-mode;
-				remote-endpoint = <0x66>;
-				linux,phandle = <0x64>;
-				phandle = <0x64>;
+					slave-mode;
+					remote-endpoint = <0x66>;
+					linux,phandle = <0x64>;
+					phandle = <0x64>;
 				};
 			};
 		};
@@ -1759,57 +1759,57 @@
 				#size-cells = <0x00>;
 
 				port@0 {
-				reg = <0x00>;
+					reg = <0x00>;
 
-				endpoint {
+					endpoint {
 						remote-endpoint = <0x67>;
 						linux,phandle = <0x65>;
 						phandle = <0x65>;
-				};
+					};
 				};
 
 				port@1 {
-				reg = <0x00>;
+					reg = <0x00>;
 
-				endpoint {
+					endpoint {
 						slave-mode;
 						remote-endpoint = <0x68>;
 						linux,phandle = <0x6d>;
 						phandle = <0x6d>;
-				};
+					};
 				};
 
 				port@2 {
-				reg = <0x01>;
+					reg = <0x01>;
 
-				endpoint {
+					endpoint {
 						slave-mode;
 						remote-endpoint = <0x69>;
 						linux,phandle = <0x6f>;
 						phandle = <0x6f>;
-				};
+					};
 				};
 
 				port@3 {
-				reg = <0x02>;
+					reg = <0x02>;
 
-				endpoint {
+					endpoint {
 						slave-mode;
 						remote-endpoint = <0x6a>;
 						linux,phandle = <0x71>;
 						phandle = <0x71>;
-				};
+					};
 				};
 
 				port@4 {
-				reg = <0x03>;
+					reg = <0x03>;
 
-				endpoint {
+					endpoint {
 						slave-mode;
 						remote-endpoint = <0x6b>;
 						linux,phandle = <0x73>;
 						phandle = <0x73>;
-				};
+					};
 				};
 			};
 		};
@@ -1824,9 +1824,9 @@
 			port {
 
 				endpoint {
-				remote-endpoint = <0x6d>;
-				linux,phandle = <0x68>;
-				phandle = <0x68>;
+					remote-endpoint = <0x6d>;
+					linux,phandle = <0x68>;
+					phandle = <0x68>;
 				};
 			};
 		};
@@ -1841,9 +1841,9 @@
 			port {
 
 				endpoint {
-				remote-endpoint = <0x6f>;
-				linux,phandle = <0x69>;
-				phandle = <0x69>;
+					remote-endpoint = <0x6f>;
+					linux,phandle = <0x69>;
+					phandle = <0x69>;
 				};
 			};
 		};
@@ -1858,9 +1858,9 @@
 			port {
 
 				endpoint {
-				remote-endpoint = <0x71>;
-				linux,phandle = <0x6a>;
-				phandle = <0x6a>;
+					remote-endpoint = <0x71>;
+					linux,phandle = <0x6a>;
+					phandle = <0x6a>;
 				};
 			};
 		};
@@ -1875,9 +1875,9 @@
 			port {
 
 				endpoint {
-				remote-endpoint = <0x73>;
-				linux,phandle = <0x6b>;
-				phandle = <0x6b>;
+					remote-endpoint = <0x73>;
+					linux,phandle = <0x6b>;
+					phandle = <0x6b>;
 				};
 			};
 		};
@@ -3311,19 +3311,19 @@
 			cluster0 {
 
 				core0 {
-				cpu = <0x6c>;
+					cpu = <0x6c>;
 				};
 
 				core1 {
-				cpu = <0x6e>;
+					cpu = <0x6e>;
 				};
 
 				core2 {
-				cpu = <0x70>;
+					cpu = <0x70>;
 				};
 
 				core3 {
-				cpu = <0x72>;
+					cpu = <0x72>;
 				};
 			};
 		};
@@ -3386,237 +3386,27 @@
 		sprd,efuse-blk-binning = <0x27 0xf00>;
 		sprd,cpufreq-temp-threshold = <0x41>;
 		sprd,ss-waferid-names = "T8F619_1\0T8F619_2\0T8F619_3\0T8F619_4\0T8F619_6\0T8F619_7\0T8F619_8\0T8F619_10\0T8F619_11\0T8F619_12\0T8F619_13\0T8F619_15\0T8F619_16\0T8F619_18\0T8F619_19\0T8F619_20\0T8F619_22\0T8F619_23\0T8F619_24\0T8F619_25\0T8F622_1\0T8F622_2\0T8F622_3\0T8F622_4\0T8F622_5\0T8F622_6\0T8F801_1\0T8F801_2\0T8F801_4\0T8F801_3\0T9S964_1";
-		operating-points = <
-			/* kHz  uV */
-			1820000 1354375
-			1700000 1275000
-			1600000 1225000
-			1500000 1175000
-			1400000 1125000
-			1300000 1100000
-			1100000 1000000
-			 900000  900000
-			 768000  900000>;
-		operating-points-1-0 = <
-			/* kHz  uV */
-			1820000 1290625
-			1700000 1206250
-			1600000 1162500
-			1500000 1056250
-			1400000 1021875
-			1300000  987500
-			1100000  918750
-			 900000  900000
-			 768000  900000>;
-		operating-points-2-0 = <
-			/* kHz  uV */
-			1820000 1328125
-			1700000 1243750
-			1600000 1200000
-			1500000 1109375
-			1400000 1071875
-			1300000 1034375
-			1100000  959375
-			 900000  900000
-			 768000  900000>;
-		operating-points-3-0 = <
-			/* kHz  uV */
-			1820000 1340625
-			1700000 1262500
-			1600000 1218750
-			1500000 1175000
-			1400000 1121875
-			1300000 1081250
-			1100000 1000000
-			 900000  921875
-			 768000  900000>;
-		operating-points-4-0 = <
-			/* kHz  uV */
-			1820000 1354375
-			1700000 1281250
-			1600000 1243750
-			1500000 1200000
-			1400000 1150000
-			1300000 1112500
-			1100000 1034375
-			 900000  953125
-			 768000  900000>;
-		operating-points-1-1 = <
-			/* kHz  uV */
-			1820000 1290625
-			1700000 1206250
-			1600000 1162500
-			1500000 1056250
-			1400000 1021875
-			1300000  987500
-			1100000  918750
-			 900000  850000
-			 768000  850000>;
-		operating-points-2-1 = <
-			/* kHz  uV */
-			1820000 1328125
-			1700000 1243750
-			1600000 1200000
-			1500000 1109375
-			1400000 1071875
-			1300000 1034375
-			1100000  959375
-			 900000  881250
-			 768000  850000>;
-		operating-points-3-1 = <
-			/* kHz  uV */
-			1820000 1340625
-			1700000 1262500
-			1600000 1218750
-			1500000 1175000
-			1400000 1121875
-			1300000 1081250
-			1100000 1000000
-			 900000  921875
-			 768000  868750>;
-		operating-points-4-1 = <
-			/* kHz  uV */
-			1820000 1354375
-			1700000 1281250
-			1600000 1243750
-			1500000 1200000
-			1400000 1150000
-			1300000 1112500
-			1100000 1034375
-			 900000  953125
-			 768000  900000>;
-		operating-points-1-0-65 = <
-			/* kHz  uV */
-			1820000 1309375
-			1700000 1225000
-			1600000 1181250
-			1500000 1084375
-			1400000 1043750
-			1300000 1003125
-			1100000  921875
-			 900000  900000
-			 768000  900000>;
-		operating-points-2-0-65 = <
-			/* kHz  uV */
-			1820000 1346875
-			1700000 1262500
-			1600000 1218750
-			1500000 1140625
-			1400000 1096875
-			1300000 1053125
-			1100000  965625
-			 900000  900000
-			 768000  900000>;
-		operating-points-3-0-65 = <
-			/* kHz  uV */
-			1820000 1354375
-			1700000 1287500
-			1600000 1243750
-			1500000 1200000
-			1400000 1150000
-			1300000 1106250
-			1100000 1015625
-			 900000  925000
-			 768000  900000>;
-		operating-points-4-0-65 = <
-			/* kHz  uV */
-			1820000 1354375
-			1700000 1300000
-			1600000 1262500
-			1500000 1218750
-			1400000 1181250
-			1300000 1137500
-			1100000 1050000
-			 900000  959375
-			 768000  900000>;
-		operating-points-1-1-65 = <
-			/* kHz  uV */
-			1820000 1309375
-			1700000 1225000
-			1600000 1181250
-			1500000 1084375
-			1400000 1043750
-			1300000 1003125
-			1100000  921875
-			 900000  900000
-			 768000  900000>;
-		operating-points-2-1-65 = <
-			/* kHz  uV */
-			1820000 1346875
-			1700000 1262500
-			1600000 1218750
-			1500000 1140625
-			1400000 1096875
-			1300000 1053125
-			1100000  965625
-			 900000  900000
-			 768000  900000>;
-		operating-points-3-1-65 = <
-			/* kHz  uV */
-			1820000 1354375
-			1700000 1287500
-			1600000 1243750
-			1500000 1200000
-			1400000 1150000
-			1300000 1106250
-			1100000 1015625
-			 900000  925000
-			 768000  900000>;
-		operating-points-4-1-65 = <
-			/* kHz  uV */
-			1820000 1354375
-			1700000 1300000
-			1600000 1262500
-			1500000 1218750
-			1400000 1181250
-			1300000 1137500
-			1100000 1050000
-			 900000  959375
-			 768000  900000>;
-		operating-points-3 = <
-			/* kHz  uV */
-			1820000 1340625
-			1700000 1262500
-			1600000 1218750
-			1500000 1175000
-			1400000 1121875
-			1300000 1081250
-			1100000 1000000
-			 900000  921875
-			 768000  900000>;
-		operating-points-4 = <
-			/* kHz  uV */
-			1820000 1354375
-			1700000 1281250
-			1600000 1243750
-			1500000 1200000
-			1400000 1150000
-			1300000 1112500
-			1100000 1034375
-			 900000  953125
-			 768000  900000>;
-		operating-points-3-65 = <
-			/* kHz  uV */
-			1820000 1354375
-			1700000 1287500
-			1600000 1243750
-			1500000 1200000
-			1400000 1150000
-			1300000 1106250
-			1100000 1015625
-			 900000  925000
-			 768000  900000>;
-		operating-points-4-65 = <
-			/* kHz  uV */
-			1820000 1354375
-			1700000 1300000
-			1600000 1262500
-			1500000 1218750
-			1400000 1181250
-			1300000 1137500
-			1100000 1050000
-			 900000  959375
-			 768000  900000>;
+		operating-points = <0x1bc560 0x14aa87 0x19f0a0 0x137478 0x186a00 0x12b128 0x16e360 0x11edd8 0x155cc0 0x112a88 0x13d620 0x10c8e0 0x10c8e0 0xf4240 0xdbba0 0xdbba0 0xbb800 0xdbba0>;
+		operating-points-1-0 = <0x1bc560 0x13b181 0x19f0a0 0x1267ea 0x186a00 0x11bd04 0x16e360 0x101dfa 0x155cc0 0xf97b3 0x13d620 0xf116c 0x10c8e0 0xe04de 0xdbba0 0xdbba0 0xbb800 0xdbba0>;
+		operating-points-2-0 = <0x1bc560 0x1443fd 0x19f0a0 0x12fa66 0x186a00 0x124f80 0x16e360 0x10ed7f 0x155cc0 0x105b03 0x13d620 0xfc887 0x10c8e0 0xea38f 0xdbba0 0xdbba0 0xbb800 0xdbba0>;
+		operating-points-3-0 = <0x1bc560 0x1474d1 0x19f0a0 0x1343a4 0x186a00 0x1298be 0x16e360 0x11edd8 0x155cc0 0x111e53 0x13d620 0x107fa2 0x10c8e0 0xf4240 0xdbba0 0xe1113 0xbb800 0xdbba0>;
+		operating-points-4-0 = <0x1bc560 0x14aa87 0x19f0a0 0x138ce2 0x186a00 0x12fa66 0x16e360 0x124f80 0x155cc0 0x118c30 0x13d620 0x10f9b4 0x10c8e0 0xfc887 0xdbba0 0xe8b25 0xbb800 0xdbba0>;
+		operating-points-1-1 = <0x1bc560 0x13b181 0x19f0a0 0x1267ea 0x186a00 0x11bd04 0x16e360 0x101dfa 0x155cc0 0xf97b3 0x13d620 0xf116c 0x10c8e0 0xe04de 0xdbba0 0xcf850 0xbb800 0xcf850>;
+		operating-points-2-1 = <0x1bc560 0x1443fd 0x19f0a0 0x12fa66 0x186a00 0x124f80 0x16e360 0x10ed7f 0x155cc0 0x105b03 0x13d620 0xfc887 0x10c8e0 0xea38f 0xdbba0 0xd7262 0xbb800 0xcf850>;
+		operating-points-3-1 = <0x1bc560 0x1474d1 0x19f0a0 0x1343a4 0x186a00 0x1298be 0x16e360 0x11edd8 0x155cc0 0x111e53 0x13d620 0x107fa2 0x10c8e0 0xf4240 0xdbba0 0xe1113 0xbb800 0xd418e>;
+		operating-points-4-1 = <0x1bc560 0x14aa87 0x19f0a0 0x138ce2 0x186a00 0x12fa66 0x16e360 0x124f80 0x155cc0 0x118c30 0x13d620 0x10f9b4 0x10c8e0 0xfc887 0xdbba0 0xe8b25 0xbb800 0xdbba0>;
+		operating-points-1-0-65 = <0x1bc560 0x13fabf 0x19f0a0 0x12b128 0x186a00 0x120642 0x16e360 0x108bd7 0x155cc0 0xfed26 0x13d620 0xf4e75 0x10c8e0 0xe1113 0xdbba0 0xdbba0 0xbb800 0xdbba0>;
+		operating-points-2-0-65 = <0x1bc560 0x148d3b 0x19f0a0 0x1343a4 0x186a00 0x1298be 0x16e360 0x116791 0x155cc0 0x10bcab 0x13d620 0x1011c5 0x10c8e0 0xebbf9 0xdbba0 0xdbba0 0xbb800 0xdbba0>;
+		operating-points-3-0-65 = <0x1bc560 0x14aa87 0x19f0a0 0x13a54c 0x186a00 0x12fa66 0x16e360 0x124f80 0x155cc0 0x118c30 0x13d620 0x10e14a 0x10c8e0 0xf7f49 0xdbba0 0xe1d48 0xbb800 0xdbba0>;
+		operating-points-4-0-65 = <0x1bc560 0x14aa87 0x19f0a0 0x13d620 0x186a00 0x1343a4 0x16e360 0x1298be 0x155cc0 0x120642 0x13d620 0x115b5c 0x10c8e0 0x100590 0xdbba0 0xea38f 0xbb800 0xdbba0>;
+		operating-points-1-1-65 = <0x1bc560 0x13fabf 0x19f0a0 0x12b128 0x186a00 0x120642 0x16e360 0x108bd7 0x155cc0 0xfed26 0x13d620 0xf4e75 0x10c8e0 0xe1113 0xdbba0 0xdbba0 0xbb800 0xdbba0>;
+		operating-points-2-1-65 = <0x1bc560 0x148d3b 0x19f0a0 0x1343a4 0x186a00 0x1298be 0x16e360 0x116791 0x155cc0 0x10bcab 0x13d620 0x1011c5 0x10c8e0 0xebbf9 0xdbba0 0xdbba0 0xbb800 0xdbba0>;
+		operating-points-3-1-65 = <0x1bc560 0x14aa87 0x19f0a0 0x13a54c 0x186a00 0x12fa66 0x16e360 0x124f80 0x155cc0 0x118c30 0x13d620 0x10e14a 0x10c8e0 0xf7f49 0xdbba0 0xe1d48 0xbb800 0xdbba0>;
+		operating-points-4-1-65 = <0x1bc560 0x14aa87 0x19f0a0 0x13d620 0x186a00 0x1343a4 0x16e360 0x1298be 0x155cc0 0x120642 0x13d620 0x115b5c 0x10c8e0 0x100590 0xdbba0 0xea38f 0xbb800 0xdbba0>;
+		operating-points-3 = <0x1bc560 0x1474d1 0x19f0a0 0x1343a4 0x186a00 0x1298be 0x16e360 0x11edd8 0x155cc0 0x111e53 0x13d620 0x107fa2 0x10c8e0 0xf4240 0xdbba0 0xe1113 0xbb800 0xdbba0>;
+		operating-points-4 = <0x1bc560 0x14aa87 0x19f0a0 0x138ce2 0x186a00 0x12fa66 0x16e360 0x124f80 0x155cc0 0x118c30 0x13d620 0x10f9b4 0x10c8e0 0xfc887 0xdbba0 0xe8b25 0xbb800 0xdbba0>;
+		operating-points-3-65 = <0x1bc560 0x14aa87 0x19f0a0 0x13a54c 0x186a00 0x12fa66 0x16e360 0x124f80 0x155cc0 0x118c30 0x13d620 0x10e14a 0x10c8e0 0xf7f49 0xdbba0 0xe1d48 0xbb800 0xdbba0>;
+		operating-points-4-65 = <0x1bc560 0x14aa87 0x19f0a0 0x13d620 0x186a00 0x1343a4 0x16e360 0x1298be 0x155cc0 0x120642 0x13d620 0x115b5c 0x10c8e0 0x100590 0xdbba0 0xea38f 0xbb800 0xdbba0>;
 		linux,phandle = <0xa1>;
 		phandle = <0xa1>;
 	};
@@ -4954,7 +4744,6 @@
 				compatible = "android,vbmeta";
 				parts = "vbmeta,boot,recovery,system,vendor";
 			};
-
 		};
 	};
 
@@ -4969,32 +4758,32 @@
 			trips {
 
 				trip-point@0 {
-				temperature = <0x11170>;
-				hysteresis = <0x3e8>;
-				type = "passive";
+					temperature = <0x11170>;
+					hysteresis = <0x3e8>;
+					type = "passive";
 				};
 
 				trip-point@1 {
-				temperature = <0x14c08>;
-				hysteresis = <0x3e8>;
-				type = "passive";
-				linux,phandle = <0xbd>;
-				phandle = <0xbd>;
+					temperature = <0x14c08>;
+					hysteresis = <0x3e8>;
+					type = "passive";
+					linux,phandle = <0xbd>;
+					phandle = <0xbd>;
 				};
 
 				cpu_crit {
-				temperature = <0x1adb0>;
-				hysteresis = <0x7d0>;
-				type = "critical";
+					temperature = <0x1adb0>;
+					hysteresis = <0x7d0>;
+					type = "critical";
 				};
 			};
 
 			cooling-maps {
 
 				map0 {
-				trip = <0xbd>;
-				contribution = <0x400>;
-				cooling-device = <0xbe 0xffffffff 0xffffffff>;
+					trip = <0xbd>;
+					contribution = <0x400>;
+					cooling-device = <0xbe 0xffffffff 0xffffffff>;
 				};
 			};
 		};
@@ -5008,32 +4797,32 @@
 			trips {
 
 				trip-point@0 {
-				temperature = <0x11170>;
-				hysteresis = <0x3e8>;
-				type = "passive";
+					temperature = <0x11170>;
+					hysteresis = <0x3e8>;
+					type = "passive";
 				};
 
 				trip-point@1 {
-				temperature = <0x14c08>;
-				hysteresis = <0x3e8>;
-				type = "passive";
-				linux,phandle = <0xc0>;
-				phandle = <0xc0>;
+					temperature = <0x14c08>;
+					hysteresis = <0x3e8>;
+					type = "passive";
+					linux,phandle = <0xc0>;
+					phandle = <0xc0>;
 				};
 
 				gpu_crit {
-				temperature = <0x1adb0>;
-				hysteresis = <0x7d0>;
-				type = "critical";
+					temperature = <0x1adb0>;
+					hysteresis = <0x7d0>;
+					type = "critical";
 				};
 			};
 
 			cooling-maps {
 
 				map0 {
-				trip = <0xc0>;
-				contribution = <0x400>;
-				cooling-device = <0xc1 0xffffffff 0xffffffff>;
+					trip = <0xc0>;
+					contribution = <0x400>;
+					cooling-device = <0xc1 0xffffffff 0xffffffff>;
 				};
 			};
 		};
