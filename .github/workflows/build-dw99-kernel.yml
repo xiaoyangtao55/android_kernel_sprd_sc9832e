@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout kernel source
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Install dependencies
         run: |
