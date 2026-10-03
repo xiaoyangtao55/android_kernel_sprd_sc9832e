@@ -129,13 +129,19 @@ static noinline int send_sulog_dump(void __user *uptr)
 
 	// index can be a bit late but this doesnt matter in the grand scheme of things.
 	// we'll take the discrepancy, its not as important anyway.
-	void *memory __offstack(SULOG_BUFSIZ);
+	void *memory __offstack_flags(SULOG_BUFSIZ, GFP_KERNEL);
 	if (!memory)
 		return -ENOMEM;
 
 	uint32_t uptime = boottime_s_get();
 	uint32_t current_idx = __atomic_load_n(&sulog_index_next, __ATOMIC_ACQUIRE); // reader consume + barrier
-	memcpy(memory, sulog_buf_ptr, SULOG_BUFSIZ); // take a snapshot
+
+	uint64_t *dst_buf = (uint64_t *)memory;
+	uint64_t *src_buf = (uint64_t *)sulog_buf_ptr;
+
+	size_t i;
+	for (i = 0; i < SULOG_ENTRY_MAX; i++)
+		__atomic_load(&src_buf[i], &dst_buf[i], __ATOMIC_RELAXED);
 
 	if (copy_to_user((void __user *)(uintptr_t)sbuf.uptime_ptr, &uptime, sizeof(uptime) ))
 		return 1;

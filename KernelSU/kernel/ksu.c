@@ -20,18 +20,6 @@
 
 #include "kernel_includes.h"
 
-// uapi
-#include "include/uapi/app_profile.h"
-#include "include/uapi/feature.h"
-#include "include/uapi/selinux.h"
-#include "include/uapi/supercall.h"
-#include "include/uapi/sulog.h"
-
-// includes
-#include "include/klog.h"
-#include "include/arch.h"
-#include "include/ksu.h"
-
 // selinux includes
 #include "avc_ss.h"
 #include "objsec.h"
@@ -42,8 +30,21 @@
 #include "avc.h"
 #endif
 
+// uapi
+#include "include/uapi/app_profile.h"
+#include "include/uapi/feature.h"
+#include "include/uapi/selinux.h"
+#include "include/uapi/supercall.h"
+#include "include/uapi/sulog.h"
+
+// includes
+#include "include/arch.h"
+#include "include/klog.h"
+#include "include/ksu.h"
+
 // kernel compat
 #include "kernel_compat.h"
+#include "include/util.h"
 
 #include "policy/app_profile.h"
 #include "policy/allowlist.h"
@@ -205,9 +206,9 @@ static inline void ksu_print_build_info(void)
 
 #if defined(__VERSION__) && defined(__STDC_VERSION__)
 #if defined(__clang_version__)
-	pr_info("Built with: Clang %d.%d.%d on stdc: %ld\n", __clang_major__, __clang_minor__, __clang_patchlevel__, __STDC_VERSION__);
+	pr_info("Built with: Clang %d.%d.%d w/ stdc: %ld\n", __clang_major__, __clang_minor__, __clang_patchlevel__, __STDC_VERSION__);
 #else
-	pr_info("Built with: GCC %s on stdc: %ld\n", __VERSION__, __STDC_VERSION__);
+	pr_info("Built with: GCC %s w/ stdc: %ld\n", __VERSION__, __STDC_VERSION__);
 #endif
 #endif
 

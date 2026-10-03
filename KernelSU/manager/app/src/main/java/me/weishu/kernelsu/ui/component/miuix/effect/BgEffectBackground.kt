@@ -2,7 +2,6 @@
 
 package me.weishu.kernelsu.ui.component.miuix.effect
 
-import android.os.Build
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
@@ -33,11 +32,6 @@ fun BgEffectBackground(
     content: @Composable BoxScope.() -> Unit,
 ) {
     if (!isRuntimeShaderSupported()) {
-        Box(modifier = modifier, content = content)
-        return
-    }
-    // Safety check: skip blur effects on devices that don't support it at runtime
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
         Box(modifier = modifier, content = content)
         return
     }
