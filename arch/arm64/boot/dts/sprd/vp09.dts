@@ -5190,5 +5190,14 @@
 		gpios = <0x10 0x4e 0x00 0x10 0x5c 0x00>;
 		linux,axis = <0x00>;
 		rotary-encoder,relative-axis;
+		/*
+		 * Key-emulation mode: report one key press per detent instead of
+		 * REL_X motion, so the knob reaches applications. Clockwise /
+		 * counter-clockwise map to KEY_VOLUMEUP (0x73) / KEY_VOLUMEDOWN
+		 * (0x72); if the direction feels reversed, swap the two values.
+		 */
+		rotary-encoder,key-cw = <0x73>;
+		rotary-encoder,key-ccw = <0x72>;
+		rotary-encoder,steps-per-period = <0x04>;
 	};
 };

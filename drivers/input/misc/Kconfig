@@ -582,6 +582,23 @@ config INPUT_GPIO_ROTARY_ENCODER
 	  To compile this driver as a module, choose M here: the
 	  module will be called rotary_encoder.
 
+config INPUT_GPIO_ROTARY_ENCODER_KEY
+	bool "  Report rotary encoder detents as key events"
+	depends on INPUT_GPIO_ROTARY_ENCODER
+	help
+	  Say Y here to let a rotary encoder report one key press/release per
+	  detent instead of REL/ABS motion, configured per device with the
+	  "rotary-encoder,key-cw" and "rotary-encoder,key-ccw" device tree
+	  properties.
+
+	  This is useful on Android, where relative axis events are consumed
+	  by the pointer mapper and are therefore invisible to applications.
+	  Mapping the knob to keycodes such as KEY_VOLUMEUP/KEY_VOLUMEDOWN
+	  makes it work with the stock input stack and needs no app support.
+
+	  Devices that do not set the key properties keep the stock
+	  REL/ABS behaviour; this option on its own changes nothing.
+
 config INPUT_RB532_BUTTON
 	tristate "Mikrotik Routerboard 532 button interface"
 	depends on MIKROTIK_RB532
