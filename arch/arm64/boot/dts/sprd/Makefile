@@ -30,6 +30,7 @@ dtb-$(CONFIG_ARCH_SPRD) += sc9836-openphone.dtb \
 	gm01.dtb \
 	dw99.dtb \
 	vp09.dtb \
+	m53.dtb \
 	sp9832e-10c20-native.dtb\
 	sp9850e-1h10-native.dtb\
 	ud710-haps.dtb\

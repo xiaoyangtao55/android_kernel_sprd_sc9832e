@@ -1,0 +1,146 @@
+name: Build M53 Kernel
+
+on:
+  workflow_dispatch:
+    inputs:
+      localversion:
+        description: 'Local version suffix (optional)'
+        required: false
+        default: '-m53'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+
+    env:
+      ARCH: arm64
+      CROSS_COMPILE: aarch64-linux-gnu-
+      CC: ccache aarch64-linux-gnu-gcc
+      DEFCONFIG: lineageos_m53_defconfig
+      DTB_PATTERN: "*m53*.dtb"
+
+    steps:
+      - name: Checkout kernel source
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install dependencies
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential bc bison flex \
+            libssl-dev libncurses5-dev \
+            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+            u-boot-tools xz-utils ccache \
+            libstdc++6:i386 zlib1g:i386
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: m53-kernel
+          max-size: 2G
+
+      - name: Generate .config
+        run: |
+          make $DEFCONFIG
+
+          if [ -n "${{ inputs.localversion }}" ]; then
+            echo "CONFIG_LOCALVERSION=\"${{ inputs.localversion }}\"" >> .config
+          fi
+
+          make olddefconfig
+
+      - name: Build kernel + DTB
+        run: |
+          make -j$(nproc)
+          make -j$(nproc) dtbs
+
+      - name: Build modules
+        run: |
+          make -j$(nproc) modules
+
+      - name: Build mali.ko
+        run: |
+          mkdir -p out/mali
+          find drivers/gpu/arm/midgard/mali -mindepth 1 -type d -printf 'out/mali/%P\0' | xargs -0 mkdir -p
+
+          make -C drivers/gpu/arm/midgard \
+            BSP_BOARD_NAME=sl8541e_1h10 \
+            BSP_KERNEL_PATH=$PWD \
+            BSP_MODULES_OUT=$PWD/out \
+            modules
+
+      # ============ 新增：编译 dtbtool ============
+      - name: Build dtbtool
+        run: |
+          make -C tools/dtbtool clean || true
+          make -C tools/dtbtool CC=gcc CFLAGS="-O2 -Wall -D_GNU_SOURCE"
+
+          file tools/dtbtool/dtbtool
+          file tools/dtbtool/dtbtool | grep -q "ELF.*x86-64" || {
+            echo "ERROR: dtbtool is not x86-64 ELF!"
+            exit 1
+          }
+
+      # ============ 新增：生成合并 DTB ============
+      - name: Generate merged DTB image
+        run: |
+          set -e
+
+          # 收集本机型 DTB 到临时目录
+          mkdir -p /tmp/dtb_input
+          find arch/arm64/boot/dts -name "$DTB_PATTERN" \
+               -exec cp {} /tmp/dtb_input/ \;
+
+          echo "=== DTB files collected ==="
+          ls -l /tmp/dtb_input/
+
+          if [ -z "$(ls -A /tmp/dtb_input/)" ]; then
+            echo "ERROR: no DTB files matched '$DTB_PATTERN'"
+            exit 1
+          fi
+
+          # 生成合并镜像（注意：输出路径不能和输入目录同名）
+          ./tools/dtbtool/dtbtool \
+              -o /tmp/dtb.img \
+              -p /usr/bin/ \
+              -s 2048 \
+              /tmp/dtb_input/
+
+          echo "=== dtb.img ==="
+          ls -lh /tmp/dtb.img
+          hexdump -C /tmp/dtb.img | head -n 3
+
+      - name: Prepare output
+        run: |
+          mkdir -p out
+
+          # 内核镜像
+          cp -f arch/arm64/boot/Image out/
+          cp -f arch/arm64/boot/Image.gz out/
+
+          # 设备树 (M53)
+          find arch/arm64/boot/dts -name "$DTB_PATTERN" -exec cp {} out/ \;
+
+          # 合并后的 DTB 镜像
+          cp -f /tmp/dtb.img out/dtb.img
+
+          # 调试文件
+          cp -f vmlinux out/
+          cp -f System.map out/
+          cp -f .config out/config
+
+          echo "=== Output ==="
+          ls -lh out/
+
+      - name: Set timestamp
+        run: echo "STAMP=$(TZ='Asia/Shanghai' date +'%y%m%d%H%M')" >> $GITHUB_ENV
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: m53-kernel-${{ github.run_number }}-${{ env.STAMP }}
+          path: out/*
