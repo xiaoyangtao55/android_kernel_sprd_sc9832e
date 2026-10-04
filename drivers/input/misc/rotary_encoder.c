@@ -61,6 +61,32 @@ static void rotary_encoder_report_event(struct rotary_encoder *encoder)
 {
 	const struct rotary_encoder_platform_data *pdata = encoder->pdata;
 
+#ifdef CONFIG_INPUT_GPIO_ROTARY_ENCODER_KEY
+	if (pdata->key_event) {
+		/*
+		 * Emulate a press/release pair for one detent. This keeps the
+		 * direction information (encoder->dir) while producing events
+		 * that every consumer of the stock input stack already
+		 * understands, e.g. KEY_VOLUMEUP / KEY_VOLUMEDOWN.
+		 */
+		unsigned int code = encoder->dir ? pdata->key_code_ccw :
+						   pdata->key_code_cw;
+
+		if (!code) {
+			dev_warn(encoder->input->dev.parent,
+				 "no keycode for dir %u, event dropped\n",
+				 encoder->dir);
+			return;
+		}
+
+		input_report_key(encoder->input, code, 1);
+		input_sync(encoder->input);
+		input_report_key(encoder->input, code, 0);
+		input_sync(encoder->input);
+		return;
+	}
+#endif
+
 	if (pdata->relative_axis) {
 		input_report_rel(encoder->input,
 				 pdata->axis, encoder->dir ? -1 : 1);
@@ -229,6 +255,33 @@ static struct rotary_encoder_platform_data *rotary_encoder_parse_dt(struct devic
 		of_property_read_bool(np, "rotary-encoder,relative-axis");
 	pdata->rollover = of_property_read_bool(np, "rotary-encoder,rollover");
 
+	/*
+	 * Optional key-emulation mode: "rotary-encoder,key-cw" /
+	 * "rotary-encoder,key-ccw" hold the input keycodes reported for a
+	 * clockwise / counter-clockwise detent. When present, relative-axis
+	 * and linux,axis are ignored.
+	 */
+	pdata->key_event = false;
+	pdata->key_code_cw = 0;
+	pdata->key_code_ccw = 0;
+
+#ifdef CONFIG_INPUT_GPIO_ROTARY_ENCODER_KEY
+	error = of_property_read_u32(np, "rotary-encoder,key-cw",
+				     &pdata->key_code_cw);
+	if (!error) {
+		error = of_property_read_u32(np, "rotary-encoder,key-ccw",
+					     &pdata->key_code_ccw);
+		if (error) {
+			dev_err(dev,
+				"rotary-encoder,key-cw given without key-ccw\n");
+			kfree(pdata);
+			return ERR_PTR(-EINVAL);
+		}
+
+		pdata->key_event = true;
+	}
+#endif
+
 	error = of_property_read_u32(np, "rotary-encoder,steps-per-period",
 				     &pdata->steps_per_period);
 	if (error) {
@@ -291,7 +344,24 @@ static int rotary_encoder_probe(struct platform_device *pdev)
 	input->id.bustype = BUS_HOST;
 	input->dev.parent = dev;
 
-	if (pdata->relative_axis) {
+	if (pdata->key_event) {
+#ifdef CONFIG_INPUT_GPIO_ROTARY_ENCODER_KEY
+		if (!pdata->key_code_cw || !pdata->key_code_ccw) {
+			dev_err(dev, "key mode needs both keycodes\n");
+			err = -EINVAL;
+			goto exit_free_mem;
+		}
+
+		input->evbit[0] = BIT_MASK(EV_KEY);
+		input_set_capability(input, EV_KEY, pdata->key_code_cw);
+		input_set_capability(input, EV_KEY, pdata->key_code_ccw);
+#else
+		dev_err(dev,
+			"key-cw/key-ccw set but CONFIG_INPUT_GPIO_ROTARY_ENCODER_KEY is off\n");
+		err = -EINVAL;
+		goto exit_free_mem;
+#endif
+	} else if (pdata->relative_axis) {
 		input->evbit[0] = BIT_MASK(EV_REL);
 		input->relbit[0] = BIT_MASK(pdata->axis);
 	} else {
