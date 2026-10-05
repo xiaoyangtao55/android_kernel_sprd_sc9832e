@@ -5198,6 +5198,20 @@
 		 */
 		rotary-encoder,key-cw = <0x73>;
 		rotary-encoder,key-ccw = <0x72>;
-		rotary-encoder,steps-per-period = <0x04>;
+		/*
+		 * One step per period: report a single event when the encoder
+		 * returns to a stable state, instead of one per edge. The
+		 * contacts bounce on every transition and this board has no
+		 * hardware debounce, so counting every edge produced about
+		 * four volume steps per detent.
+		 */
+		rotary-encoder,steps-per-period = <0x01>;
+		/*
+		 * Software debounce window. Measured bounce was up to ~2 ms
+		 * wide; with CONFIG_HZ_100 one jiffy is 10 ms, so this is the
+		 * smallest useful setting. Raise to 0x14/0x1e if detents are
+		 * still doubled, lower it if slow turns drop steps.
+		 */
+		rotary-encoder,debounce-ms = <0x0a>;
 	};
 };
