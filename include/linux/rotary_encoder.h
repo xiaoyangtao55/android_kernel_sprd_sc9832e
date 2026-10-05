@@ -31,8 +31,6 @@ struct rotary_encoder_platform_data {
 	 * used by these boards has no working set_debounce.
 	 */
 	unsigned int debounce_ms;
-	/* Time of the last accepted edge, in jiffies. */
-	unsigned long last_jiffies;
 };
 
 #endif /* __ROTARY_ENCODER_H__ */
