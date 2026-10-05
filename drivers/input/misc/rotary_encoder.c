@@ -44,6 +44,9 @@ struct rotary_encoder {
 	unsigned char dir;	/* 0 - clockwise, 1 - CCW */
 
 	char last_stable;
+
+	/* Time of the last edge accepted by the debounce filter, in jiffies. */
+	unsigned long last_jiffies;
 };
 
 static int rotary_encoder_get_state(const struct rotary_encoder_platform_data *pdata)
