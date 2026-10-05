@@ -115,10 +115,48 @@ static void rotary_encoder_report_event(struct rotary_encoder *encoder)
 	input_sync(encoder->input);
 }
 
+/*
+ * Software contact debounce.
+ *
+ * A mechanical encoder's contacts bounce for a few hundred microseconds
+ * on every transition. The GPIO controller on these boards has no
+ * working hardware debounce, so those bounces reach the state machine
+ * and get decoded as extra detents -- which, with key emulation, turns
+ * into random volume steps.
+ *
+ * Rate-limit the handlers instead: any edge arriving within
+ * debounce_ms of the previous accepted one is treated as bounce and
+ * dropped. The timer is only advanced on accepted edges, so a genuine
+ * burst of detents is not swallowed wholesale.
+ *
+ * Returns true if the edge should be ignored.
+ */
+static bool rotary_encoder_is_bounce(struct rotary_encoder *encoder)
+{
+	const struct rotary_encoder_platform_data *pdata = encoder->pdata;
+	unsigned long now;
+	unsigned long delay;
+
+	if (!pdata->debounce_ms)
+		return false;
+
+	delay = msecs_to_jiffies(pdata->debounce_ms);
+	now = jiffies;
+
+	if (time_before(now, encoder->last_jiffies + delay))
+		return true;
+
+	encoder->last_jiffies = now;
+	return false;
+}
+
 static irqreturn_t rotary_encoder_irq(int irq, void *dev_id)
 {
 	struct rotary_encoder *encoder = dev_id;
 	int state;
+
+	if (rotary_encoder_is_bounce(encoder))
+		return IRQ_HANDLED;
 
 	state = rotary_encoder_get_state(encoder->pdata);
 
@@ -149,6 +187,9 @@ static irqreturn_t rotary_encoder_half_period_irq(int irq, void *dev_id)
 	struct rotary_encoder *encoder = dev_id;
 	int state;
 
+	if (rotary_encoder_is_bounce(encoder))
+		return IRQ_HANDLED;
+
 	state = rotary_encoder_get_state(encoder->pdata);
 
 	switch (state) {
@@ -174,6 +215,9 @@ static irqreturn_t rotary_encoder_quarter_period_irq(int irq, void *dev_id)
 	struct rotary_encoder *encoder = dev_id;
 	unsigned char sum;
 	int state;
+
+	if (rotary_encoder_is_bounce(encoder))
+		return IRQ_HANDLED;
 
 	state = rotary_encoder_get_state(encoder->pdata);
 
@@ -300,6 +344,16 @@ static struct rotary_encoder_platform_data *rotary_encoder_parse_dt(struct devic
 
 	pdata->wakeup_source = of_property_read_bool(np, "wakeup-source");
 
+	/*
+	 * Optional contact debounce, in milliseconds. Mechanical encoders
+	 * bounce on every detent; without debounce those bounces reach the
+	 * decoder as extra edges and show up as spurious detents, which a
+	 * key-emulation mapping turns into random volume steps.
+	 */
+	pdata->debounce_ms = 0;
+	of_property_read_u32(np, "rotary-encoder,debounce-ms",
+			     &pdata->debounce_ms);
+
 	return pdata;
 }
 #else
@@ -404,6 +458,12 @@ static int rotary_encoder_probe(struct platform_device *pdev)
 		err = -EINVAL;
 		goto exit_free_gpio_b;
 	}
+
+	/*
+	 * Debouncing is handled in software inside the interrupt handlers
+	 * (see rotary_encoder_is_bounce); the sprd-ap-gpio controller used
+	 * by these boards does not implement set_debounce.
+	 */
 
 	err = request_irq(encoder->irq_a, handler,
 			  IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,

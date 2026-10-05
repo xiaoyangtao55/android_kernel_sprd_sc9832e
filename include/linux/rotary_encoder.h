@@ -20,6 +20,19 @@ struct rotary_encoder_platform_data {
 	bool key_event;
 	unsigned int key_code_cw;
 	unsigned int key_code_ccw;
+	/*
+	 * Software contact debounce time in milliseconds. Mechanical
+	 * encoders bounce for a few hundred microseconds on every edge,
+	 * and this driver would otherwise decode those bounces as extra
+	 * detents. Zero disables debouncing.
+	 *
+	 * This is done in software rather than through the GPIO
+	 * controller because the Spreadtrum "sprd-ap-gpio" controller
+	 * used by these boards has no working set_debounce.
+	 */
+	unsigned int debounce_ms;
+	/* Time of the last accepted edge, in jiffies. */
+	unsigned long last_jiffies;
 };
 
 #endif /* __ROTARY_ENCODER_H__ */
